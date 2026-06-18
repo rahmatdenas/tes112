@@ -156,6 +156,16 @@ optgroup option {
   background: #eee;
 }
 
+#details .sunting-link {
+  text-decoration: none;
+  color: #888;
+  padding: 0 4px;        
+  border-radius: 2px;    
+}
+#details .sunting-link:hover {
+  background: #eee;
+  color: #555;
+}
 
 #details .koordinat-link a {
   text-decoration: none;
