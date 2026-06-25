@@ -103,13 +103,13 @@ var currentKategoriUtama = 'general';
 // === UBAH FUNGSI DETEKTIF MENJADI SEPERTI INI ===
 function tentukanKategoriKueri(inputTxt) {
   if (inputTxt.includes('Q11032') || inputTxt.includes('Q41298')) return 'pers';
-  if (inputTxt.includes('Q3199141') || inputTxt.includes('Q3191695')) return 'wilayah';
   
   // Daftar Q-ID Entitas Alam & Peristiwa
   const kelompokAlam = ['Q179049', 'Q8502', 'Q35509', 'Q23442', 'Q34038', 'Q23397', 'Q204324', 'Q159954', 'Q7944'];
   let isAlam = kelompokAlam.some(qid => inputTxt.includes(qid));
   if (isAlam) return 'alam';
   
+  // Wilayah Administratif otomatis akan bermuara di sini
   return 'general';
 }
 
@@ -125,17 +125,15 @@ function populateProvinceTypesData() {
   let baseQuery = KUMPULAN_KUERI_0[namaKueri];
   
   // 3. Suntikkan Dropdown Wilayah dengan Logika UNION Skenario 1 dan 2
-  let wilayahClause1 = '';
+let wilayahClause1 = '';
   let wilayahClause2 = '';
   
   if (provInput === 'all') {
-    // Jika "Semua Wilayah", cari semua entitas provinsi, ATAU yang langsung ke Q252 (Indonesia)
     wilayahClause1 = '?provinsi wdt:P31 wd:Q5098 .';
-    wilayahClause2 = 'BIND(wd:Q252 AS ?p131Lokasi)';
+    wilayahClause2 = 'BIND(wd:Q252 AS ?p131Lokasi) BIND(wd:Q252 AS ?provinsi)'; // <-- Perbaikan di sini
   } else {
-    // Jika wilayah spesifik, kunci ?provinsi (Skenario 1) atau kunci langsung lokasinya (Skenario 2)
     wilayahClause1 = `BIND(${provInput} AS ?provinsi)`;
-    wilayahClause2 = `BIND(${provInput} AS ?p131Lokasi)`;
+    wilayahClause2 = `BIND(${provInput} AS ?p131Lokasi) BIND(${provInput} AS ?provinsi)`; // <-- Perbaikan di sini
   }
   
   // 4. Rakit kueri final (Gunakan regex /.../g untuk memastikan semua instans terganti)
@@ -459,7 +457,7 @@ function generateFilterSelect() {
     
     // === PINDAHKAN LOGIKA SEMBUNYI/MUNCUL KE SINI ===
     // Di titik ini, aplikasi sudah 100% tahu ini entitas Alam atau Bangunan
-    if (currentKategoriUtama === 'alam' || currentKategoriUtama === 'wilayah') {
+if (currentKategoriUtama === 'alam') {
       selectKombinasi.style.display = 'none';
     } else {
       selectKombinasi.style.display = ''; // Munculkan kembali
@@ -749,7 +747,7 @@ function generateRecordDetails(qid) {
     let infoTahunHtml = '';
     
     // HANYA cetak "Didirikan" jika BUKAN alam dan BUKAN wilayah
-    if (currentKategoriUtama !== 'alam' && currentKategoriUtama !== 'wilayah') {
+if (currentKategoriUtama !== 'alam') {
       if (record.tahunBerdiri) {
         infoTahunHtml = `<p>Didirikan: ${record.tahunBerdiri}</p>`;
       } else {
