@@ -468,7 +468,7 @@ optgroup option { padding-left: 10px; }
 #details p a.image img, #details li a.image img { vertical-align: middle; }
 
 /* --- Tautan --- */
-#details .wikipedia-link { margin: 5px 0 10px; }
+#details .wikipedia-link { margin: 5px 0 0px; }
 #details .wikipedia-link a {
   display: inline-block;
   border: none;
