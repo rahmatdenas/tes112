@@ -1232,7 +1232,7 @@ function renderHistoricalImagesInPanel(qid) {
   }
 
   if (record.commonsCat) {
-    html += '<h2>Galeri lainnya</h2>';
+    html += '<h2 style="margin-top:10px;">Galeri lainnya</h2>';
     html += 
       '<p class="wikipedia-link" style="margin-bottom: 0;">' +
         `<a href="https://commons.wikimedia.org/wiki/Category:${encodeURIComponent(record.commonsCat)}" target="_blank">` +
