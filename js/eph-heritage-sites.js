@@ -652,7 +652,7 @@ if (urlWikibooks) {
     
     if (arsipContainer) {
       let wikibooksHtml = `
-        <div style="margin-top:0px;">
+        <div style="margin-top:10px;">
           <h2>Resep & Panduan</h2>
           <p class="wikipedia-link">
             <a href="${urlWikibooks}" target="_blank">
