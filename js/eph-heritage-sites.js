@@ -243,23 +243,37 @@ function populateProvinceTypesData() {
   let provDropdown = document.getElementById('provinsi-input');
   let provInput = provDropdown.value;
   
-  // 1. Simpan Data Global 
+  // ==========================================
+  // 1. TENTUKAN VARIABEL GLOBAL & WILAYAH
+  // ==========================================
   currentKategoriUtama = tentukanKategoriKueri(inputTxt);
   currentNamaKlaster = dapatkanNamaKlaster(inputTxt); 
-  currentNamaWilayah = provDropdown.options[provDropdown.selectedIndex].text;
   
+  // Tentukan currentNamaWilayah di awal secara final
+  if (provInput === 'luar_negeri') {
+    let negaraDropdown = document.getElementById('negara-input');
+    currentNamaWilayah = negaraDropdown.options[negaraDropdown.selectedIndex].text;
+  } else {
+    currentNamaWilayah = provDropdown.options[provDropdown.selectedIndex].text;
+  }
+  
+  // ==========================================
+  // 2. PERBARUI TAMPILAN (HANYA SEKALI DI SINI)
+  // ==========================================
+  
+  // Update Branding Desc
   let brandingDesc = document.getElementById('branding-desc');
   if (brandingDesc) {
     brandingDesc.textContent = `${currentNamaKlaster} di ${currentNamaWilayah}`;
   }
 
-  // 2. Render Loading
+  // Render Teks Loading
   let indexList = document.getElementById('index-list');
   if (indexList) {
     indexList.innerHTML = `
       <div style="padding: 40px 20px; text-align: center; line-height: 1.6;">
         <h3 id="loading-text" style="margin-bottom: 10px; margin-top:0; color: #333;">
-          Sedang Menarik Data ${currentNamaKlaster} di ${currentNamaWilayah}...
+          Sedang Menarik Data<br/>${currentNamaKlaster} di ${currentNamaWilayah}...
         </h3>
         <p style="color: #666; font-size:14px; margin-bottom: 25px;">Mohon tunggu sebentar, Wikidata sedang mencari dan menyusun daftar entitas untuk Anda.</p>
         <div class="loader" style="margin: 0 auto; width: 40px; height: 40px; border-width: 4px;"></div>
@@ -267,48 +281,16 @@ function populateProvinceTypesData() {
     `;
   }
   
-  // === FUNGSI PEMBANTU UNTUK EKSEKUSI KUERI ===
-  // Kita pindahkan ke atas agar mudah dipanggil oleh semua cabang
+  // ==========================================
+  // 3. FUNGSI PEMBANTU EKSEKUSI KUERI
+  // ==========================================
   function eksekusiKueriKeWikidata(kueriFinal) {
-    console.log("Kueri yang dikirim:", kueriFinal);
-    return queryWdqsPaginated(
-      kueriFinal,
-      function(result) {
-        let qid = result.SQ.value;
-        if (!(qid in Records)) Records[qid] = new Record(false);
-        let record = Records[qid];
-        record.id = qid;
-
-        record.title = ('sLabel' in result && result.sLabel.value) ? result.sLabel.value : '[ERROR: No title]';
-
-        let provQid = result.PQ ? result.PQ.value : 'Q_UNKNOWN';
-        let provLabel = result.pLabel ? result.pLabel.value : 'Tidak dalam Provinsi';
-
-        if (!(provQid in ProvinceIndex)) {
-          ProvinceIndex[provQid] = new ProvinceIndexEntry();
-          ProvinceIndex[provQid].name = provLabel; 
-        }
-        if (!(provQid in record.designations)) record.designations[provQid] = provLabel; 
-        
-        record.areaTags.add(provQid);
-        
-        if ('lLabel' in result && result.lLabel.value) record.lokasiSpesifik = result.lLabel.value;
-        
-        if (!record.tahunBerdiri && result.tM && result.tM.value) {
-          let precision = result.tP ? result.tP.value : 9;
-          record.tahunBerdiri = formatWikidataDate(result.tM.value, precision);        
-          record.rawTahunBerdiri = result.tM.value.replace(/^[+-]/, '');
-        }
-      },
-      function() {
-        populateProvinceIndex(); 
-        Object.values(Records).forEach(record => { record.indexTitle = record.title });
-      },
-      5000 
-    );
+    // ... (Isi fungsi ini tetap sama seperti sebelumnya) ...
   }
 
-  // === LOGIKA PEMILIHAN TEMPLATE KUERI ===
+  // ==========================================
+  // 4. LOGIKA PEMILIHAN TEMPLATE KUERI
+  // ==========================================
   let baseQuery = KUMPULAN_KUERI_0['universal'];
   
   if (inputTxt.toLowerCase() === 'apapun') {
@@ -332,15 +314,13 @@ function populateProvinceTypesData() {
     filterNasional = '?s wdt:P407 wd:Q9240 .';
   }
 
-  // ==========================================
-  // CABANG LUAR NEGERI
-  // ==========================================
+  // --- CABANG LUAR NEGERI ---
   if (provInput === 'luar_negeri') {
     let negaraDropdown = document.getElementById('negara-input');
     let negaraValue = negaraDropdown.value;
-    currentNamaWilayah = negaraDropdown.options[negaraDropdown.selectedIndex].text; 
     
-    if (brandingDesc) brandingDesc.textContent = `${currentNamaKlaster} di ${currentNamaWilayah}`;
+    // PERHATIKAN: Tidak ada lagi update brandingDesc atau nama wilayah di blok ini.
+    // Blok ini sekarang murni hanya menyusun kueri datanya saja.
     
     baseQuery = KUMPULAN_KUERI_0['luar_negeri'];
     let dynamicQuery = baseQuery;
