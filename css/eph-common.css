@@ -357,18 +357,19 @@ optgroup option { padding-left: 10px; }
 #details .main-wikidata-link {
   display: block;
   float: right;
-  margin: 0 0 0 20px;
+  margin: 6px 0 0 20px;
 }
 
 #details h1 {
   margin: 0 0 17px;
-  padding: 0 0 10px;
+  padding: 0 0 5px;
   font-size: 24px;
-  line-height: 24px;
+  line-height: 29px;
   font-family: "Open Sans", sans-serif;
-  font-weight: 600;
+  font-weight: 500;
   border-bottom: 1px solid #eaa;
   color: #611;
+  letter-spacing: -1px;
 }
 
 #details h1 .subtitle { font-size: 0.75em; }
