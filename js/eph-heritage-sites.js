@@ -816,47 +816,45 @@ function populateMapAndIndex() {
       );
       record.mapMarker = mapMarker;
       
- mapMarker.bindPopup(record.title, { 
+mapMarker.bindPopup(record.title, { 
         closeButton: false,
         maxWidth: 200 
       });
 
       // =======================================================
-      // +++ LOGIKA KLIK KEDUA (KHUSUS MOBILE) +++
+      // +++ LOGIKA KLIK KEDUA YANG ANTI-BUG (KHUSUS MOBILE) +++
       // =======================================================
+      
+      // 1. Tandai marker secara diam-diam saat popup-nya terbuka
+      mapMarker.on('popupopen', function() {
+        // Jeda 50ms agar klik pertama tidak langsung memicu logika klik kedua
+        setTimeout(() => {
+          this._popupSedangAktif = true;
+        }, 50);
+      });
+
+      // 2. Hapus tanda saat popup tertutup (karena klik tempat lain atau pindah marker)
+      mapMarker.on('popupclose', function() {
+        this._popupSedangAktif = false;
+      });
+
+      // 3. Logika utama saat marker diklik
       mapMarker.on('click', function() {
-        // Cek apakah hash URL saat ini sama persis dengan Q-ID marker.
-        // Jika sama, ini adalah klik kedua di area yang sama.
-        if (window.location.hash === '#' + qid) {
+        // Jika sensor mengatakan popup marker ini sedang terbuka...
+        if (this._popupSedangAktif) {
           
-          // Tarik panel mobile ke atas
+          // ...maka ini PASTI klik kedua! Tarik panelnya:
           if (typeof window.setMobilePanelExpanded === 'function') {
             window.setMobilePanelExpanded(true);
           }
           
-          // Tidak perlu this.openPopup(); 
-          // Biarkan sistem Leaflet bekerja normal menutup popup-nya.
+          // Lawan sifat asli Leaflet yang mencoba menutup popup di klik kedua
+          setTimeout(() => { 
+            this.openPopup(); 
+          }, 10);
         }
       });
       // =======================================================
-
-      let popup = mapMarker.getPopup();
-      popup._qid = qid;
-      record.popup = popup;
-      mapMarkers.push(mapMarker);
-    }
-    
-    let li = document.createElement('li');
-    let a = document.createElement('a');
-    a.href = '#' + qid;
-    
-    // Gunakan textContent agar karakter aneh < > " dari Wikidata
-    // diubah menjadi teks biasa (aman dari kerusakan HTML)
-    a.textContent = record.indexTitle; 
-    
-    li.appendChild(a);
-    record.indexLi = li;
-  });
   
   populateProvinceIndexNodes(); 
   generateFilterSelect();
