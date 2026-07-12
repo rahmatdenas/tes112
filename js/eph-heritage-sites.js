@@ -1055,7 +1055,7 @@ function applyIntersectionFilter(preventZoom = false) {
       btnAll.textContent = 'Semua Hasil'; 
     } else {
       btnAll.classList.remove('active');
-      btnAll.textContent = 'Reset'; 
+      btnAll.textContent = 'Pulihkan'; 
     }
   }
 
