@@ -160,6 +160,11 @@
   height: auto;
   box-sizing: border-box;
 }
+   
+.mode-tokoh #details figure.gambar-utama {
+  margin: 0 0 7px 10px;
+  width: 150px;
+}
 
 #details .main-text {
   padding: 0px !important;
