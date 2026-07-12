@@ -614,8 +614,17 @@ function activateMapMarker(qid) {
   let record = Records[qid];
   if (!record.mapMarker) return; 
 
-  // BUNGKUS DENGAN TRY-CATCH: Mencegah error peta merusak layar UI
   try {
+    // =========================================================
+    // +++ OBAT ANTI KLASTER HANTU & TABRAKAN ANIMASI +++
+    // =========================================================
+    // 1. Paksa klaster sebelumnya untuk menguncup dengan menutup popup-nya
+    Map.closePopup();
+    
+    // 2. Rem mendadak animasi terbang (flyTo/zoom) yang belum selesai
+    Map.stop();
+    // =========================================================
+
     let countSameLocation = 0;
     currentFilteredRecords.forEach(r => {
       if (r.lat === record.lat && r.lon === record.lon) {
@@ -640,19 +649,15 @@ function activateMapMarker(qid) {
         Cluster.zoomToShowLayer(
           record.mapMarker,
           function() {
-            // HAPUS Map.setView DARI SINI! zoomToShowLayer sudah otomatis mengatur posisi layar.
-            // Cukup buka popup-nya saja.
             if (!record.popup.isOpen()) record.mapMarker.openPopup();
           }
         );
       } else {
-        // Jaga-jaga jika marker tidak ada di klaster (misal terhalang filter)
         Map.setView([record.lat, record.lon], Map.getZoom());
         if (!record.popup.isOpen()) record.mapMarker.openPopup();
       }
     }
   } catch (error) {
-    // Jika Leaflet macet, abaikan secara diam-diam agar fungsi displayRecordDetails() tetap jalan
     console.warn("Interupsi animasi peta dicegat:", error);
   }
 }
