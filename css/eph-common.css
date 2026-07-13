@@ -74,6 +74,7 @@ body {
   display: flex; 
   align-items: center; /* Memastikan ikon dan teks sejajar di tengah secara vertikal */
   padding: 20px; /* Ruang bingkai dipindah ke sini agar menaungi ikon dan teks sekaligus */
+   background: #822;
 }
 
 /* --- PENGATURAN IKON BARU --- */
@@ -387,7 +388,7 @@ cursor: not-allowed;
    ========================================================================== */
 #details {
   display: none;
-  padding: 20px;
+  margin: 20px;
 }
 
 #details .main-wikidata-link {
