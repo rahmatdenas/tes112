@@ -256,10 +256,10 @@ function updateLabel(expanded) {
       }
     });
 
-    document.querySelectorAll('a[href="#hasil"]').forEach(function(btnHasil) {
-      btnHasil.addEventListener('click', function(e) {
+document.querySelectorAll('#nav-standar a:not(#btn-menu-induk), #nav-detail a').forEach(function(btnNav) {
+      btnNav.addEventListener('click', function() {
         if (isMobile() && window.setMobilePanelExpanded) {
-          // Perintahkan panel untuk meluncur ke atas secara instan
+          // Setiap kali menu apa pun diklik, paksa panel meluncur naik dan sinkronkan labelnya!
           window.setMobilePanelExpanded(true);
         }
       });
