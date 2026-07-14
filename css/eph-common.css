@@ -97,7 +97,6 @@ input, textarea, select {
     width: 500px; /* KUNCI: Disamakan persis dengan lebar #panel milikmu */
     z-index: 9999;
     background: #822; /* Disamakan dengan warna latar #panel */
-   border-top: 1px solid #FFF;
   }
 
 #branding {
@@ -186,7 +185,7 @@ nav li.active > a, nav li > a.active {
 }
 
 #submenu-atas li a:hover {
-    background: #611;
+    background: #a22;
    color: #fff;
 }
 
