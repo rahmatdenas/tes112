@@ -107,7 +107,7 @@ input, textarea, select {
   display: flex; 
   align-items: center; /* Memastikan ikon dan teks sejajar di tengah secara vertikal */
   padding: 25px 20px; /* Ruang bingkai dipindah ke sini agar menaungi ikon dan teks sekaligus */
-   background: #822;
+   background: #7b0d0c;
 }
 
 /* --- PENGATURAN IKON BARU --- */
