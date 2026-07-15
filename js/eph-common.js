@@ -35,6 +35,7 @@ var lastValidHash   = 'landing';
 var isRevertingHash = false;
 var loadingTimeoutToken = null;
 var searchDebounceToken = null;
+var isTerbangViaNavigasi = false;
 
 const ikonTetesanAir = L.divIcon({
   className: 'ikon-marker-ringan',
@@ -115,6 +116,15 @@ document.addEventListener('click', function(e) {
     }
   });
   processHashChange();
+let navDetail = document.getElementById('nav-detail');
+  if (navDetail) {
+    navDetail.addEventListener('click', function(e) {
+      if (e.target.closest('#btn-prev') || e.target.closest('#btn-next')) {
+        isTerbangViaNavigasi = true; // <--- Lapor ke detektif!
+      }
+    });
+  }
+  
 }
 
 
@@ -710,6 +720,13 @@ function activateMapMarker(qid) {
     Map.closePopup();
     Map.stop();
 
+    // =======================================================
+    // +++ BACA LAPORAN DETEKTIF: TERBANG ATAU GESER? +++
+    // =======================================================
+    let pergerakanPeta = isTerbangViaNavigasi ? 'flyTo' : 'setView';
+    let opsiTerbang = isTerbangViaNavigasi ? { duration: 1.5, easeLinearity: 0.25 } : {};
+    // =======================================================
+
     let countSameLocation = 0;
     currentFilteredRecords.forEach(r => {
       if (r.lat === record.lat && r.lon === record.lon) {
@@ -718,10 +735,10 @@ function activateMapMarker(qid) {
     });
 
     if (countSameLocation > 60) {
-      Map.setView([record.lat, record.lon], TILE_LAYER_MAX_ZOOM);
+      // +++ Ganti Map.setView menjadi dinamis +++
+      Map[pergerakanPeta]([record.lat, record.lon], TILE_LAYER_MAX_ZOOM, opsiTerbang);
+      
       setTimeout(() => {
-        // --- KUNCI PENANGKAL 1 ---
-        // Kalau URL sudah bukan QID ini lagi (misal user udah klik Hasil), batalkan efeknya!
         if (window.location.hash !== '#' + qid) return;
         
         let visibleParent = Cluster.getVisibleParent(record.mapMarker);
@@ -737,20 +754,25 @@ function activateMapMarker(qid) {
         Cluster.zoomToShowLayer(
           record.mapMarker,
           function() {
-            // --- KUNCI PENANGKAL 2 ---
-            // Kalau animasi mekar selesai tapi user udah balik ke Index, JANGAN buka popup!
             if (window.location.hash !== '#' + qid) return;
-
             if (!record.popup.isOpen()) record.mapMarker.openPopup();
           }
         );
       } else {
-        Map.setView([record.lat, record.lon], Map.getZoom());
+        // +++ Ganti Map.setView menjadi dinamis +++
+        Map[pergerakanPeta]([record.lat, record.lon], Map.getZoom(), opsiTerbang);
         if (!record.popup.isOpen()) record.mapMarker.openPopup();
       }
     }
   } catch (error) {
     console.warn("Interupsi animasi peta dicegat:", error);
+  } finally {
+    // =======================================================
+    // +++ RESET STATUS DETEKTIF (SANGAT PENTING) +++
+    // =======================================================
+    // Apapun yang terjadi, kembalikan ke false agar klik daftar 
+    // selanjutnya kembali menggunakan mode geser biasa (setView).
+    isTerbangViaNavigasi = false;
   }
 }
 
@@ -1132,22 +1154,24 @@ window.addEventListener('keydown', function(e) {
 window.addEventListener('keyup', function(e) {
   if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
 
-  if (e.key === 'ArrowLeft') {
-    isArrowLeftHeld = false; // Lepas kuncian
-    
+if (e.key === 'ArrowLeft') {
+    isArrowLeftHeld = false; 
     let btnPrev = document.getElementById('btn-prev');
     if (btnPrev && btnPrev.hasAttribute('href') && btnPrev.style.pointerEvents !== 'none') {
-      btnPrev.classList.remove('active'); // Matikan efek
-      window.location.hash = btnPrev.getAttribute('href'); // EKSEKUSI PINDAH!
+      btnPrev.classList.remove('active'); 
+      
+      isTerbangViaNavigasi = true; // <--- KUNCI: Lapor ke detektif!
+      window.location.hash = btnPrev.getAttribute('href'); 
     }
   } 
   else if (e.key === 'ArrowRight') {
-    isArrowRightHeld = false; // Lepas kuncian
-    
+    isArrowRightHeld = false; 
     let btnNext = document.getElementById('btn-next');
     if (btnNext && btnNext.hasAttribute('href') && btnNext.style.pointerEvents !== 'none') {
-      btnNext.classList.remove('active'); // Matikan efek
-      window.location.hash = btnNext.getAttribute('href'); // EKSEKUSI PINDAH!
+      btnNext.classList.remove('active'); 
+      
+      isTerbangViaNavigasi = true; // <--- KUNCI: Lapor ke detektif!
+      window.location.hash = btnNext.getAttribute('href'); 
     }
   }
 });
