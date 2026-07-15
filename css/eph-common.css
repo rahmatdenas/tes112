@@ -86,7 +86,7 @@ input, textarea, select {
 }
    .panel-content, 
   #index-list {
-        padding-bottom:45px;
+        padding-bottom:48px;
     }
 
 #navigasi-utama {
@@ -467,7 +467,7 @@ cursor: not-allowed;
 padding-top: 20px;
 padding-left: 20px;
 padding-right: 20px;
-padding-bottom: 68px;
+padding-bottom: 65px;
 }
 
 #details .main-wikidata-link {
