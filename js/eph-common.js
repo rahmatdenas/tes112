@@ -1171,41 +1171,41 @@ window.addEventListener('load', function() {
   let imgElem = document.getElementById('lightbox-img');
   let linkElem = document.getElementById('lightbox-link');
 
-  // 2. Tangkap klik pada semua gambar di panel (KECUALI gambar utama)
+// 2. Tangkap klik pada SEMUA gambar di panel (termasuk gambar utama) dan di popup peta
   document.addEventListener('click', function(e) {
-    // Selector ini akan mencari a href yang membungkus gambar selain class .gambar-utama
-    let targetLink = e.target.closest('#details figure:not(.gambar-utama) a');
+    // Bidik langsung tag <img>-nya
+    let targetImg = e.target.closest('#details figure img, .leaflet-popup-content img');
     
-    if (targetLink) {
-      e.preventDefault(); // Cegat perilaku bawaan (jangan langsung buka tab baru!)
+    if (targetImg) {
+      e.preventDefault(); // Cegat perilaku bawaan (jangan langsung buka tab baru/scroll top)
 
-      // Ambil sumber gambar dari thumbnail yang diklik
-      let imgDalam = targetLink.querySelector('img');
-      let srcGambar = imgDalam ? imgDalam.src : '';
+      let srcGambar = targetImg.src;
+      let linkKeCommons = '';
 
-      // Trik Cerdas: Kita ganti resolusi lebarnya dari 500px menjadi 800px untuk versi Lightbox
-      // Agar saat diperbesar, gambar tidak pecah, tanpa harus mendownload file asli yang bergiga-giga
+      // Cek apakah gambar ini dibungkus link <a> (seperti di panel detail)
+      let parentLink = targetImg.closest('a');
+      if (parentLink) {
+        linkKeCommons = parentLink.href;
+      } else {
+        // Jika dari Popup peta (tidak ada tag <a>), kita ekstrak manual nama filenya
+        // Memecah "https://commons.../Special:FilePath/Nama_File.jpg?width=250"
+        let namaFileRaw = srcGambar.split('Special:FilePath/')[1];
+        if (namaFileRaw) {
+          let namaFileBersih = namaFileRaw.split('?')[0]; // Buang parameter '?width=...'
+          linkKeCommons = 'https://commons.wikimedia.org/wiki/File:' + namaFileBersih;
+        }
+      }
+
+      // Trik Cerdas: Naikkan resolusi ke 800px untuk versi Lightbox
       if (srcGambar.includes('?width=')) {
         srcGambar = srcGambar.replace(/\?width=\d+/, '?width=800');
       }
 
       // 3. Masukkan data ke dalam elemen Lightbox
       imgElem.src = srcGambar;
-      linkElem.href = targetLink.href; // Pertahankan URL asli ke Commons untuk klik kedua
+      linkElem.href = linkKeCommons || '#'; 
 
       // 4. Panggil Lightbox-nya!
       lightbox.classList.add('aktif');
     }
   });
-
-  // 5. Tutup Lightbox saat area menghitam diklik
-  backdrop.addEventListener('click', function() {
-    lightbox.classList.remove('aktif');
-    
-    // Kosongkan gambar sejenak setelah animasi pudar selesai (0.3s) agar tidak nyangkut 
-    // jika nanti membuka gambar lain
-    setTimeout(() => { 
-      if (!lightbox.classList.contains('aktif')) imgElem.src = ''; 
-    }, 300);
-  });
-});
