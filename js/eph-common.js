@@ -1148,3 +1148,64 @@ window.addEventListener('keyup', function(e) {
     }
   }
 });
+
+// =======================================================
+// SISTEM LIGHTBOX UNTUK GAMBAR NON-UTAMA
+// =======================================================
+window.addEventListener('load', function() {
+  // 1. Suntikkan HTML Lightbox ke dalam Body secara otomatis
+  let lightboxHtml = `
+    <div id="eph-lightbox">
+      <div class="lightbox-backdrop"></div>
+      <div class="lightbox-content">
+        <a id="lightbox-link" href="#" target="_blank">
+          <img id="lightbox-img" src="" alt="Gambar Diperbesar">
+        </a>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', lightboxHtml);
+
+  let lightbox = document.getElementById('eph-lightbox');
+  let backdrop = lightbox.querySelector('.lightbox-backdrop');
+  let imgElem = document.getElementById('lightbox-img');
+  let linkElem = document.getElementById('lightbox-link');
+
+  // 2. Tangkap klik pada semua gambar di panel (KECUALI gambar utama)
+  document.addEventListener('click', function(e) {
+    // Selector ini akan mencari a href yang membungkus gambar selain class .gambar-utama
+    let targetLink = e.target.closest('#details figure:not(.gambar-utama) a');
+    
+    if (targetLink) {
+      e.preventDefault(); // Cegat perilaku bawaan (jangan langsung buka tab baru!)
+
+      // Ambil sumber gambar dari thumbnail yang diklik
+      let imgDalam = targetLink.querySelector('img');
+      let srcGambar = imgDalam ? imgDalam.src : '';
+
+      // Trik Cerdas: Kita ganti resolusi lebarnya dari 500px menjadi 800px untuk versi Lightbox
+      // Agar saat diperbesar, gambar tidak pecah, tanpa harus mendownload file asli yang bergiga-giga
+      if (srcGambar.includes('?width=')) {
+        srcGambar = srcGambar.replace(/\?width=\d+/, '?width=800');
+      }
+
+      // 3. Masukkan data ke dalam elemen Lightbox
+      imgElem.src = srcGambar;
+      linkElem.href = targetLink.href; // Pertahankan URL asli ke Commons untuk klik kedua
+
+      // 4. Panggil Lightbox-nya!
+      lightbox.classList.add('aktif');
+    }
+  });
+
+  // 5. Tutup Lightbox saat area menghitam diklik
+  backdrop.addEventListener('click', function() {
+    lightbox.classList.remove('aktif');
+    
+    // Kosongkan gambar sejenak setelah animasi pudar selesai (0.3s) agar tidak nyangkut 
+    // jika nanti membuka gambar lain
+    setTimeout(() => { 
+      if (!lightbox.classList.contains('aktif')) imgElem.src = ''; 
+    }, 300);
+  });
+});
