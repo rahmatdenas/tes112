@@ -516,18 +516,18 @@ async function populateImageAndWikipediaData() {
   let btnArt = document.getElementById('btn-article') || document.querySelector('[data-filter="article"]');
   let tiketPencarianIni = currentSearchToken;
 
-  for (let i = 0; i < kelompokCicilan.length; i++) {
+for (let i = 0; i < kelompokCicilan.length; i++) {
     // Berhenti jika pengguna klik tombol "Mulai" lagi (pencarian baru)
     if (currentSearchToken !== tiketPencarianIni) break; 
 
-    // MATIKAN TOMBOL SESAAT (Sesuai ide Anda)
+    // UBAH TEKS MENJADI INDIKATOR PROGRES (Tanpa mengunci tombol)
+    let persentase = Math.round(((i + 1) / kelompokCicilan.length) * 100);
+    
     if (btnImg && !btnImg.classList.contains('active')) {
-      btnImg.classList.add('disabled');
-      btnImg.textContent = 'Memproses...';
+      btnImg.textContent = `Gambar (${persentase}%)`;
     }
     if (btnArt && !btnArt.classList.contains('active')) {
-      btnArt.classList.add('disabled');
-      btnArt.textContent = 'Memproses...';
+      btnArt.textContent = `Artikel (${persentase}%)`;
     }
 
     let cicilan = kelompokCicilan[i];
@@ -546,15 +546,22 @@ async function populateImageAndWikipediaData() {
 
     if (currentSearchToken !== tiketPencarianIni) break;
 
-    // NYALAKAN LAGI TOMBOLNYA
-    if (btnImg && !btnImg.classList.contains('active')) {
-      btnImg.classList.remove('disabled');
-      btnImg.textContent = 'Memiliki Gambar';
+    // Hapus cache panel agar jika user mengklik bangunan, panel di-render ulang dengan gambar terbaru
+    Object.values(Records).forEach(r => r.panelElem = undefined);
+
+    // KUNCI PENTING: Hanya render ulang daftar & peta JIKA pengguna sedang menyalakan filter.
+    if (activeFeatures.has('image') || activeFeatures.has('article')) {
+      applyIntersectionFilter(true); 
     }
-    if (btnArt && !btnArt.classList.contains('active')) {
-      btnArt.classList.remove('disabled');
-      btnArt.textContent = 'Memiliki Artikel';
-    }
+  }
+
+  // SETELAH SEMUA KLOTER SELESAI: Kembalikan teks ke aslinya
+  if (btnImg && !btnImg.classList.contains('active')) {
+    btnImg.textContent = 'Memiliki Gambar';
+  }
+  if (btnArt && !btnArt.classList.contains('active')) {
+    btnArt.textContent = 'Memiliki Artikel';
+  }
 
     // Hapus cache panel agar jika user mengklik bangunan, panel di-render ulang dengan gambar terbaru
     Object.values(Records).forEach(r => r.panelElem = undefined);
