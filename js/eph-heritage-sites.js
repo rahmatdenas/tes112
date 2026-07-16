@@ -44,6 +44,7 @@ function formatWikidataDate(dateString, precision) {
   }
 }
 
+
 function loadPrimaryData() {
   let tiketPencarianIni = currentSearchToken;
   doPreProcessing();
@@ -78,24 +79,9 @@ function loadPrimaryData() {
         btnAll.classList.remove('disabled'); // Buka gemboknya
         btnAll.classList.add('active');      // Nyalakan warnanya sebagai status bawaan
       }
-      
+
       // 2. Tarik gambar dan artikel secara diam-diam di latar belakang
-      populateImageAndWikipediaData()
-
-        .catch(error => {
-          if (error === 'ABORTED' || currentSearchToken !== tiketPencarianIni) return;
-          console.warn("Gagal menarik sebagian data Gambar/Wikipedia, server mungkin kelebihan beban.", error);
-          
-          // =========================================================
-          // +++ BUKA KUNCI TOMBOL (SKENARIO SUKSES SEBAGIAN/GAGAL) +++
-          // =========================================================
-          if (btnImg) btnImg.classList.remove('disabled');
-          if (btnArt) btnArt.classList.remove('disabled');
-
-          // Segarkan UI agar sisa foto yang berhasil didapat tetap bisa difilter
-          applyIntersectionFilter(); 
-          Object.values(Records).forEach(r => r.panelElem = undefined);
-        });
+      populateImageAndWikipediaData();
     })
     .catch(error => {
        // KUNCI: Karena kita melempar (throw) 'ABORTED' dari gerbang di atas, 
