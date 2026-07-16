@@ -507,7 +507,9 @@ async function populateCoordinatesData() {
 }
 
 async function populateImageAndWikipediaData() {
-  let daftarQid = Object.keys(Records).map(id => 'wd:' + id);
+let daftarQid = Object.values(Records)
+  .sort((a, b) => a.indexTitle.localeCompare(b.indexTitle))
+  .map(record => 'wd:' + record.id);
   if (daftarQid.length === 0) return;
 
   let kelompokCicilan = potongJadiKelompok(daftarQid, 1000);
@@ -554,8 +556,8 @@ if (btnImg) btnImg.classList.remove('disabled');
           // 1. UPDATE TEKS SAJA DI SINI (Sangat ringan dan aman)
           chunksCompleted++;
           let persentase = Math.round((chunksCompleted / kelompokCicilan.length) * 100);
-          if (btnImg && !btnImg.classList.contains('active')) btnImg.textContent = `Gambar (${persentase}%)`;
-          if (btnArt && !btnArt.classList.contains('active')) btnArt.textContent = `Artikel (${persentase}%)`;
+if (btnImg) btnImg.textContent = `Gambar (${persentase}%)`;
+if (btnArt) btnArt.textContent = `Artikel (${persentase}%)`;
         });
       });
 
@@ -565,7 +567,11 @@ if (btnImg) btnImg.classList.remove('disabled');
       if (currentSearchToken !== tiketPencarianIni) throw 'ABORTED';
 
       // 2. UPDATE PETA & DAFTAR CUKUP 1 KALI DI SINI (Anti-Ngelag)
-      Object.values(Records).forEach(r => r.panelElem = undefined);
+Object.values(Records).forEach(r => {
+  if (r.id !== currentDisplayedQid) {
+    r.panelElem = undefined;
+  }
+});
       if (activeFeatures.has('image') || activeFeatures.has('article')) {
         applyIntersectionFilter(true); 
       }
