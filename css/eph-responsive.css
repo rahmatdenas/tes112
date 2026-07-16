@@ -168,12 +168,15 @@ padding-bottom: 62px;
   height: auto;
   box-sizing: border-box;
 }
+
+#details figure.gambar-utama img.loading {
+  max-height: 100px;
+}
    
 #details .mode-tokoh figure.gambar-utama {
   float: right;
   margin: 0 0 7px 10px;
   width: 156px;
-  float: right;
 }
 
 #details .main-text {
