@@ -977,3 +977,94 @@ position: absolute;
 .leaflet-popup-content img {
   cursor: pointer;
 }
+
+/* =======================================================
+   KOTAK KONFIRMASI / ALERT KUSTOM
+   ======================================================= */
+#eph-dialog-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 10005; /* Harus lebih tinggi dari lightbox (10000) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+#eph-dialog-overlay.aktif {
+  opacity: 1;
+  visibility: visible;
+}
+
+.eph-dialog-box {
+  background: #fff;
+  border-radius: 6px;
+  padding: 20px;
+  width: 85%;
+  max-width: 320px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  text-align: center;
+  transform: scale(0.95);
+  transition: transform 0.25s ease;
+}
+
+#eph-dialog-overlay.aktif .eph-dialog-box {
+  transform: scale(1);
+}
+
+.eph-dialog-box h3 {
+  margin: 0 0 10px;
+  color: #611;
+  font-family: "Open Sans", sans-serif;
+  font-size: 18px;
+}
+
+.eph-dialog-box p {
+  margin: 0 0 20px;
+  color: #444;
+  font-size: 13.5px;
+  font-family: Merriweather, serif;
+  line-height: 1.6;
+}
+
+.eph-dialog-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.eph-dialog-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 4px;
+  font-family: "Open Sans", sans-serif;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s, color 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-dialog-batal {
+  background: #f3e9e9;
+  color: #822;
+}
+
+.btn-dialog-batal:hover {
+  background: #eaa;
+  color: #fff;
+}
+
+.btn-dialog-ya {
+  background: #7b0d0c;
+  color: #fff;
+}
+
+.btn-dialog-ya:hover {
+  background: #a22;
+}
