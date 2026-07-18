@@ -403,21 +403,7 @@ Map = new L.map('map', {
     return divElem;
   };
   powered.addTo(Map);
-
-Cluster = new L.markerClusterGroup({
-  maxClusterRadius: function(zoom) {
-    let z = Math.round(zoom);        
-    if (z <= 15) return 50;
-    if (z === 16) return 35;
-    if (z === 17) return 20;
-    // Biarkan zoom 18 dan seterusnya punya radius minimal (jangan 0)
-    return 10; 
-  },
-  // MATIKAN KENDALI OTOMATIS BAWAAN
-  zoomToBoundsOnClick: false, 
-  spiderfyOnMaxZoom: false
-}).addTo(Map);
-
+	
   // KENDALIKAN MANUAL KLIK PADA KLASTER
 Cluster = new L.markerClusterGroup({
   maxClusterRadius: function(zoom) {
