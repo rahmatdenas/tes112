@@ -395,7 +395,7 @@ optgroup option { padding-left: 10px; }
   border-bottom: 1px solid #eaa;
   font-size: 13px;
   line-height: 20px;
-  padding: 10px 20px 15px;
+  padding: 10px 20px 15px; /* Padding kanan 20px sudah cukup untuk ikon */
   width: 100%;
   box-sizing: border-box;
   display: block;
@@ -404,20 +404,21 @@ optgroup option { padding-left: 10px; }
   background-color: transparent;
   height: 38px;
   flex-shrink: 0;
-   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill='%23888888' d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3e%3c/svg%3e");
+
+  /* Ikon Kaca Pembesar di Kanan */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3e%3cpath fill='%23888888' d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
-  background-position: 20px center; /* Posisi kaca pembesar di kiri */
-  background-size: 16px 16px;
-  padding-left: 45px; /* Memberi ruang agar teks tidak menabrak ikon */
+background-position: calc(100% - 15px) calc(50% - 3px);
+  background-size: 20px 20px;
 }
 
 #search-input:focus {
   border-bottom: 1px solid #822;
 }
 
-#search-input::placeholder {
-  color: #888;
-  opacity: 1;
+/* SAAT ADA ISI: Hilangkan Kaca Pembesar */
+#search-input:not(:placeholder-shown) {
+  background-image: none;
 }
 
 #search-input::-webkit-search-cancel-button {
@@ -430,16 +431,7 @@ optgroup option { padding-left: 10px; }
   background-position: center;
   background-repeat: no-repeat;
   cursor: pointer;
-  margin: 0 -15px 0 0;
-}
-
-#search-input:not(:placeholder-shown)::-webkit-search-cancel-button {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-   background-image: none;
-  padding-left: 20px;
-}
+  margin: 0 -15px 0 0;}
 
 /* ==========================================================================
    6. DAFTAR INDEKS (List)
