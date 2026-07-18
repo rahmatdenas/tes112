@@ -5,9 +5,6 @@ var currentRenderIndex = 0;
 var currentFilteredRecords = [];
 var isFilterEventAttached = false; 
 
-// Variabel penjinak bom (Debounce) untuk merender titik di peta
-var renderTimeoutToken = null;
-
 // Fungsi pembelah array menjadi potongan kecil (Batching)
 function potongJadiKelompok(array, ukuran) {
   let hasilPotongan = [];
