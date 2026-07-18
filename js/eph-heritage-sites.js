@@ -47,46 +47,46 @@ function formatWikidataDate(dateString, precision) {
 
 function loadPrimaryData() {
   let tiketPencarianIni = currentSearchToken;
+  
+  // +++ TAMBAHAN: Tarik sinyal dari AbortController global +++
+  let signal = typeof globalFetchController !== 'undefined' ? globalFetchController.signal : null;
+  
   doPreProcessing();
 
+  // Opsional: Oper signal jika populateProvinceTypesData membutuhkannya
   populateProvinceTypesData() 
     .then(() => {
-      // Gerbang 1: Cek sebelum memproses koordinat
-      if (currentSearchToken !== tiketPencarianIni) throw 'ABORTED';
+      // Gerbang 1: Tambahkan pengecekan signal.aborted
+      if (currentSearchToken !== tiketPencarianIni || (signal && signal.aborted)) throw 'ABORTED';
       
       return populateCoordinatesData().then(() => {
-         // Gerbang 2: Cek sebelum menyuntikkan data ke Peta dan Daftar HTML
-         if (currentSearchToken !== tiketPencarianIni) throw 'ABORTED';
+         // Gerbang 2: Tambahkan pengecekan signal.aborted
+         if (currentSearchToken !== tiketPencarianIni || (signal && signal.aborted)) throw 'ABORTED';
          populateMapAndIndex();
       });
     })
     .then(() => {
-      // Gerbang 3: Cek sebelum membuang layar loading
-      if (currentSearchToken !== tiketPencarianIni) throw 'ABORTED';
+      // Gerbang 3: Tambahkan pengecekan signal.aborted
+      if (currentSearchToken !== tiketPencarianIni || (signal && signal.aborted)) throw 'ABORTED';
       
       // 1. Matikan layar loading secara resmi (isFetching = false)
       enableApp(); 
       
-      // =========================================================
-      // +++ PAKSA RENDER SEKARANG (UI BEBAS DARI SANDERA) +++
-      // =========================================================
       applyIntersectionFilter(); 
       processHashChange();
 
-      // +++ TAMBAHAN BARU: BANGUNKAN TOMBOL "SEMUA HASIL" +++
       let btnAll = document.getElementById('btn-all');
       if (btnAll) {
-        btnAll.classList.remove('disabled'); // Buka gemboknya
-        btnAll.classList.add('active');      // Nyalakan warnanya sebagai status bawaan
+        btnAll.classList.remove('disabled'); 
+        btnAll.classList.add('active');      
       }
 
-      // 2. Tarik gambar dan artikel secara diam-diam di latar belakang
+      // 2. Tarik gambar dan artikel (fungsi ini sudah kita amankan dengan Promise.allSettled sebelumnya)
       populateImageAndWikipediaData();
     })
     .catch(error => {
-       // KUNCI: Karena kita melempar (throw) 'ABORTED' dari gerbang di atas, 
-       // error tersebut akan ditangkap di sini dan diabaikan dengan aman tanpa merusak UI.
-       if (error === 'ABORTED') {
+       // KUNCI: Karena kita melempar (throw) 'ABORTED' dari gerbang di atas
+       if (error === 'ABORTED' || (error && error.name === 'AbortError')) {
          console.log("Pencarian dibatalkan atau diganti. Data kadaluarsa dibuang.");
          return; 
        }
@@ -101,14 +101,13 @@ function loadPrimaryData() {
          indexList.innerHTML = `
            <div style="padding: 40px 20px; text-align: center; line-height: 1.6;">
              <h3 style="margin-bottom: 10px; margin-top:0; color: #cc0000;">Gagal Menarik Data</h3>
-             <p style="color: #666; font-size:14px; margin-bottom: 25px;">Pastikan internet stabil atau tutup dan coba lagi nanti. Jika data gagal dimuat karena terlalu banyak (lebih dari 20.000), silahkan persempit pencarian.</p>
+             <p style="color: #666; font-size:14px; margin-bottom: 25px;">Pastikan internet stabil atau tutup dan coba lagi nanti. Jika data gagal dimuat karena terlalu banyak (lebih dari 20.000), silakan persempit pencarian.</p>
              <a href="#" onclick="window.location.href = window.location.pathname; return false;" style="background-color: #7b0d0c; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: 600; display: inline-block;">Kembali</a>
            </div>
          `;
        }
   
        loadingTimeoutToken = setTimeout(() => {
-         // Ganti targetnya ke elemen yang memang Anda gunakan untuk status loading
          let loadingDesc = document.querySelector('#index-list p'); 
          
          if (loadingDesc && isFetching) {
@@ -521,45 +520,53 @@ async function populateImageAndWikipediaData() {
   
   let btnImg = document.getElementById('btn-image') || document.querySelector('[data-filter="image"]');
   let btnArt = document.getElementById('btn-article') || document.querySelector('[data-filter="article"]');
-  let tiketPencarianIni = currentSearchToken;
   
   let totalData = daftarQid.length;
+  // KUNCI: Tarik sinyal dari AbortController global kita
+  let signal = typeof globalFetchController !== 'undefined' ? globalFetchController.signal : null;
 
   if (btnImg) btnImg.classList.remove('disabled');
   if (btnArt) btnArt.classList.remove('disabled');
 
   // =========================================================
-  // FUNGSI PEMBANTU: Menarik 1 kloter (1.000 data) dengan aman
+  // FUNGSI PEMBANTU: Menarik 1 kloter (1.000 data)
+  // Tidak perlu try-catch di sini agar Promise.allSettled bisa membaca statusnya
   // =========================================================
-const tarikSatuKloter = async (cicilan) => {
+  const tarikSatuKloter = async (cicilan) => {
     let kueriFinal = SPARQL_QUERY_3_TEMPLATE.replace('<PLACEHOLDER_QIDS>', cicilan.join(' '));
-    try {
-      await queryWdqsThenProcess(kueriFinal, function(result) {
-        
-        // 1. PROTEKSI QID: Pastikan kita hanya mengambil kodenya (misal "Q123"), bukan URL utuh
-        let rawQid = result.siteQid.value;
-        let cleanQid = rawQid.includes('entity/') ? rawQid.split('entity/')[1] : rawQid;
-        let record = Records[cleanQid];      
-        
-        if (!record) return; 
+    
+    // Operkan 'signal' ke parameter ke-4 fungsi inti Anda
+    return queryWdqsThenProcess(kueriFinal, function(result) {
+      let rawQid = result.siteQid.value;
+      let cleanQid = rawQid.includes('entity/') ? rawQid.split('entity/')[1] : rawQid;
+      let record = Records[cleanQid];      
+      
+      if (!record) return; 
 
-        // 2. KUNCI GAMBAR: Hapus "!record.imageFilename" agar sistem SELALU 
-        // memaksa menimpa data kotor dengan nama file yang sudah bersih
-        if ('image' in result) {
-          record.imageFilename = extractImageFilename(result.image);
+      if ('image' in result) {
+        record.imageFilename = extractImageFilename(result.image);
+      }
+
+      if ('wikipediaUrlTitle' in result) {
+        let rawArt = result.wikipediaUrlTitle.value;
+        record.articleTitle = decodeURIComponent(rawArt.substring(rawArt.lastIndexOf('/') + 1));
+      }
+    }, null, signal);
+  };
+
+  // =========================================================
+  // FUNGSI PEMBANTU: Mengecek hasil dari Promise.allSettled
+  // =========================================================
+  const evaluasiHasilKloter = (hasilKloter) => {
+    for (let hasil of hasilKloter) {
+      if (hasil.status === 'rejected') {
+        // Jika dibatalkan manual oleh pengguna, LEMPAR (throw) agar operasi berhenti!
+        if (hasil.reason === 'ABORTED' || (hasil.reason && hasil.reason.name === 'AbortError')) {
+          throw 'ABORTED';
         }
-
-        // 3. KUNCI ARTIKEL: Potong URL panjang, dan ambil judul akhirnya saja
-        if ('wikipediaUrlTitle' in result) {
-          let rawArt = result.wikipediaUrlTitle.value;
-          // Mengambil kata setelah garis miring (/) terakhir
-          record.articleTitle = decodeURIComponent(rawArt.substring(rawArt.lastIndexOf('/') + 1));
-        }
-
-      });
-    } catch (error) {
-      if (error === 'ABORTED') throw error;
-      console.warn("1 kloter gambar/artikel gagal ditarik, sistem melanjutkan kloter lainnya...", error);
+        // Jika murni masalah jaringan (1 kloter gagal ditarik), abaikan dan biarkan UI berlanjut
+        console.warn("Sebagian kloter gambar/artikel gagal ditarik. Sistem mengabaikan dan berlanjut...", hasil.reason);
+      }
     }
   };
 
@@ -567,17 +574,19 @@ const tarikSatuKloter = async (cicilan) => {
     if (totalData <= 20000) {
       // ========================================================
       // SKENARIO A: Total <= 20.000 (FULL PARALEL)
-      // Tembak semua kloter serentak dalam 1 waktu!
+      // Tembak semua kloter serentak dalam 1 waktu
       // ========================================================
-
       let daftarJanji = kelompokCicilan.map(cicilan => tarikSatuKloter(cicilan));
 
-      // Tunggu SEMUA kloter paralel selesai menembak
-      await Promise.all(daftarJanji);
+      // Tunggu SEMUA kloter selesai (baik berhasil maupun gagal)
+      let hasilKloter = await Promise.allSettled(daftarJanji);
+      
+      // Evaluasi apakah ada yang dibatalkan paksa
+      evaluasiHasilKloter(hasilKloter);
 
-      if (currentSearchToken !== tiketPencarianIni) throw 'ABORTED';
+      // Jaring pengaman ekstra
+      if (signal && signal.aborted) throw 'ABORTED';
 
-      // UPDATE PETA & DAFTAR CUKUP 1 KALI DI SINI (Anti-Ngelag)
       Object.values(Records).forEach(r => {
         if (r.id !== currentDisplayedQid) {
           r.panelElem = undefined;
@@ -596,26 +605,23 @@ const tarikSatuKloter = async (cicilan) => {
       let chunksCompleted = 0;
 
       for (let i = 0; i < kelompokCicilan.length; i += batchSize) {
-        if (currentSearchToken !== tiketPencarianIni) break; 
+        if (signal && signal.aborted) throw 'ABORTED'; 
 
         let potonganBatch = kelompokCicilan.slice(i, i + batchSize);
-        
-        // Eksekusi maksimal 3 peluru bersamaan
         let daftarJanji = potonganBatch.map(cicilan => tarikSatuKloter(cicilan));
         
-        // Sistem menunggu 3 kloter ini selesai
-        await Promise.all(daftarJanji);
+        // Tunggu 3 kloter ini selesai (baik berhasil maupun gagal)
+        let hasilKloter = await Promise.allSettled(daftarJanji);
+        
+        // Evaluasi apakah ada yang dibatalkan paksa di tengah jalan
+        evaluasiHasilKloter(hasilKloter);
 
-        if (currentSearchToken !== tiketPencarianIni) break;
-
-        // Update Persentase (Pengecekan 'active' dihilangkan agar tetap update meski tombol dipilih)
         chunksCompleted += potonganBatch.length;
         let persentase = Math.round((chunksCompleted / kelompokCicilan.length) * 100);
         
         if (btnImg) btnImg.textContent = `Gambar (${persentase}%)`;
         if (btnArt) btnArt.textContent = `Artikel (${persentase}%)`;
 
-        // Update Peta & Daftar HANYA setelah 1 batch (3 kloter) selesai
         Object.values(Records).forEach(r => r.panelElem = undefined);
         if (activeFeatures.has('image') || activeFeatures.has('article')) {
           applyIntersectionFilter(true); 
@@ -623,20 +629,16 @@ const tarikSatuKloter = async (cicilan) => {
       }
     }
   } catch (error) {
-    if (error === 'ABORTED') {
-      console.log('Penarikan gambar/artikel dihentikan karena pencarian baru.');
+    if (error === 'ABORTED' || (error && error.name === 'AbortError')) {
+      console.log('Penarikan gambar/artikel dihentikan dengan rapi (AbortController).');
     } else {
-      console.error("Proses penarikan gambar terhenti:", error);
+      console.error("Proses penarikan gambar terhenti akibat fatal error:", error);
     }
   }
 
-  // JARING PENGAMAN: Pastikan user tidak keburu klik menu lain sebelum mengembalikan teks
-  if (currentSearchToken !== tiketPencarianIni) return;
+  // JARING PENGAMAN TERAKHIR sebelum mengembalikan teks asli
+  if (signal && signal.aborted) return;
 
-  // ========================================================
-  // KEMBALIKAN TEKS TOMBOL KE ASLINYA SETELAH 100% SELESAI
-  // ========================================================
-  // Pengecekan 'active' dihilangkan agar tombol yg dipilih juga kembali teks aslinya
   if (btnImg) btnImg.textContent = 'Memiliki Gambar';
   if (btnArt) btnArt.textContent = 'Memiliki Artikel';
 }
@@ -1710,68 +1712,45 @@ if (scrollContainer) {
 }
 
 function queryOsm(qid) {
-  let xhr = new XMLHttpRequest();
-  
-  // =========================================================
-  // 1. DAFTARKAN XHR INI KE SATPAM PEMBUNUH KONEKSI
-  // =========================================================
-  activeXhrs.push(xhr);
+  // 1. Tarik sinyal dari controller global
+  let signal = typeof globalFetchController !== 'undefined' ? globalFetchController.signal : null;
 
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState !== xhr.DONE) return;
-    
-    // =========================================================
-    // 2. HAPUS DARI DAFTAR JIKA SUDAH SELESAI
-    // =========================================================
-    let index = activeXhrs.indexOf(xhr);
-    if (index > -1) activeXhrs.splice(index, 1);
+  let queryStr = `[out:json][timeout:25];\n(\n  way["wikidata"="${qid}"];\n  relation["wikidata"="${qid}"];\n);\nout body;\n>;\nout skel qt;`;
+  let url = 'https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(queryStr);
 
-    if (xhr.status === 200) {
-      let geoJson = osmtogeojson(JSON.parse(xhr.responseText));
+  fetch(url, { signal: signal })
+    .then(response => {
+      if (!response.ok) throw new Error('Koneksi ke Overpass API gagal');
+      return response.json();
+    })
+    .then(data => {
+      // Pastikan fungsi osmtogeojson tersedia
+      if (typeof osmtogeojson !== 'function') return; 
+      
+      let geoJson = osmtogeojson(data);
       if (!geoJson || geoJson.features.length === 0) return;
       
-      let shapeLayer = L.geoJSON(
-        geoJson,
-        {
-          style: { color: '#ff3333', opacity: 0.7, fill: true },
-          filter: feature => feature.geometry.type !== 'Point',
-        }
-      );
+      let shapeLayer = L.geoJSON(geoJson, {
+        style: { color: '#ff3333', opacity: 0.7, fill: true },
+        filter: feature => feature.geometry.type !== 'Point',
+      });
       
       Records[qid].shapeLayer = shapeLayer;
 
-      // Logika Anda di sini sudah cukup aman (mengecek hash)
+      // Render ke peta hanya jika QID masih sesuai dengan URL saat ini
       if (window.location.hash.replace('#', '') === qid) {
         if (currentActiveShapeLayer) Map.removeLayer(currentActiveShapeLayer);
         shapeLayer.addTo(Map);
         currentActiveShapeLayer = shapeLayer;
       }
-    }
-    else if (xhr.status === 0) {
-      // 3. JIKA STATUS 0 (DIBATALKAN MANUAL OLEH RESET APP)
-      console.log('Penarikan poligon peta dibatalkan.');
-    }
-    else {
-      console.log('ERROR loading from Overpass API', xhr);
-    }
-  };
-  
-  xhr.open(
-    'GET',
-    'https://overpass-api.de/api/interpreter?data=' +
-    encodeURIComponent(
-`[out:json][timeout:25];
-(
-  way      ["wikidata"="${qid}"];
-  relation ["wikidata"="${qid}"];
-);
-out body;
->;
-out skel qt;`
-    ),
-    true,
-  );
-  xhr.send();
+    })
+    .catch(error => {
+      if (error.name === 'AbortError') {
+        console.log('Penarikan poligon peta (OSM) dibatalkan.');
+      } else {
+        console.warn('ERROR loading from Overpass API:', error);
+      }
+    });
 }
 
 class ProvinceIndexEntry {
