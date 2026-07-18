@@ -94,11 +94,11 @@ window.konfirmasiBerhenti = function() {
            progressText.innerHTML = `<span style="color:#7b0d0c; font-weight:bold;">Memutus koneksi... Menyiapkan data yang terselamatkan.</span><br><br>Mohon tunggu sebentar, sistem sedang membangun koordinat peta...`;
         }
 
-        // BUNUH KONEKSI SECARA PAKSA!
+        // +++ KUNCI PERBAIKAN: Bunuh yang lama, lahirkan yang baru +++
         if (typeof globalFetchController !== 'undefined') {
-          globalFetchController.abort();
-          // Catatan: Tidak perlu membuat AbortController baru di sini karena 
-          // ini hanya memotong data (pencarian masih berstatus aktif).
+          let oldController = globalFetchController;
+          globalFetchController = new AbortController(); // Beri nyawa baru untuk sisa proses peta
+          oldController.abort(); // Tembak mati pencarian yang sedang nyangkut
         }
       }
     });
