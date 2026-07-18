@@ -631,7 +631,7 @@ if (totalDataTerkumpul >= 20000) {
   let wadahTombol = document.getElementById('wadah-tombol-berhenti');
   if (wadahTombol && wadahTombol.innerHTML === '') {
     // Tombol sekarang berada di wadah sendiri, tidak menumpang di <p>
-    wadahTombol.innerHTML = `<a href="#" onclick="window.konfirmasiBerhenti(); return false;" style="background-color: #7b0d0c; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: 600; display: inline-block;">Cukupkan Pencarian?</a>`;
+    wadahTombol.innerHTML = `<a href="#" onclick="window.konfirmasiBerhenti(); return false;" style="background-color: #7b0d0c; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: 600;">Cukupkan Pencarian?</a>`;
   }
 }
          }
