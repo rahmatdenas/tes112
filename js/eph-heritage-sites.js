@@ -191,6 +191,7 @@ if (cek(['Q40080'])) return 'Pantai';
 
   // Klaster Bangunan & Fasilitas (Non-Alam Default)
   if (cek(['Q32815', 'Q56235676', 'Q56235673', 'Q1454820'])) return 'Masjid';
+  if (cek(['Q41176', 'Q811979'])) return 'Bangunan';
   if (cek(['Q137894610', 'Q35112127', 'Q4246737', 'Q19860854', 'Q109607'])) return 'Bangunan bersejarah';
   if (cek(['Q16970', 'Q2977', 'Q56242215'])) return 'Gereja & katedral';
   if (cek(['Q5393308', 'Q2680845'])) return 'Vihara & kelenteng';
