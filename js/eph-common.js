@@ -94,6 +94,9 @@ window.konfirmasiBerhenti = function() {
         if (progressText) {
            progressText.innerHTML = `<span style="color:#7b0d0c; font-weight:bold;">Memutus koneksi... Menyiapkan data yang terselamatkan.</span><br><br>Mohon tunggu sebentar, sistem sedang membangun koordinat peta...`;
         }
+        // +++ TAMBAHAN: Sembunyikan tombol setelah dipencet agar layar bersih +++
+        let wadahTombol = document.getElementById('wadah-tombol-berhenti');
+        if (wadahTombol) wadahTombol.style.display = 'none';
 
         // +++ KUNCI PERBAIKAN: Bunuh yang lama, lahirkan yang baru +++
         if (typeof globalFetchController !== 'undefined') {
@@ -546,7 +549,7 @@ async function fetchWdqsRawWithRetry(query, maxRetry = 3, offsetLabel = '', sign
       if (attempt > 1) {
         let progressText = document.querySelector('#index-list p');
         if (progressText) {
-           progressText.innerHTML = `Sedang melakukan percobaan ulang${offsetLabel} (${attempt}/${maxRetry})...`;
+progressText.innerHTML = `Sedang melakukan percobaan ulang ke-${attempt}${offsetLabel}...`;
         }
       }
       
@@ -561,12 +564,13 @@ async function fetchWdqsRawWithRetry(query, maxRetry = 3, offsetLabel = '', sign
     } catch (error) {
       if (error === 'ABORTED') throw error; 
       
-      console.warn(`[${offsetLabel}] Percobaan ${attempt}/${maxRetry} gagal (${error}), mencoba lagi...`);
+	
+      console.warn(`[${offsetLabel}] Percobaan ke-${attempt} gagal (${error}), mencoba lagi...`);
       
       let progressText = document.querySelector('#index-list p');
       if (progressText) {
-        progressText.innerHTML = `<span style="color:#cc0000; font-weight:bold;">Percobaan ${attempt}/${maxRetry} gagal${offsetLabel}. Melakukan penarikan ulang.</span>`;
-      }
+progressText.innerHTML = `<span style="color:#cc0000; font-weight:bold;">Percobaan ke-${attempt} gagal${offsetLabel}. Melakukan penarikan ulang.</span>`;
+         }
 
       // KUNCI PERBAIKAN: Gunakan status AbortSignal murni
       if (attempt === maxRetry) {
@@ -595,7 +599,7 @@ async function queryWdqsPaginated(queryTemplate, processEachResult, postprocessC
       if (window.hentikanPencarian) break;
 
       let pagedQuery = queryTemplate.replace('<PLACEHOLDER_LIMIT_OFFSET>', `LIMIT ${chunkSize} OFFSET ${offset}`);
-
+let offsetLabel = ` (data ${offset.toLocaleString('id-ID')}–${(offset + chunkSize).toLocaleString('id-ID')})`;
       let bindings = await fetchWdqsRawWithRetry(pagedQuery, 3, ` (data ${offset}-${offset + chunkSize})`, signal); // TAMBAHKAN signal
       
       if (window.hentikanPencarian) break;
@@ -619,14 +623,21 @@ if (kombinasiUnik < chunkSize) {
          let progressText = document.querySelector('#index-list p');
          
          if (progressText && !window.hentikanPencarian) {
-           let teksLinkBerhenti = '';
+progressText.innerHTML = `Selesai menarik <b>${totalDataTerkumpul.toLocaleString('id-ID')}</b> data. Penarikan data masih berlanjut...`;
            
            // +++ KUNCI PERBAIKAN: Tombol hanya muncul jika data >= 20.000 +++
            if (totalDataTerkumpul >= 20000) {
              teksLinkBerhenti = `<a href="#" onclick="window.konfirmasiBerhenti(); return false;" style="color:#7b0d0c; font-weight:bold; display:inline-block;">Klik di sini</a> jika Anda ingin mencukupkan pencarian`;
            }
+progressText.innerHTML = `Selesai menarik <b>${totalDataTerkumpul.toLocaleString('id-ID')}</b> data. Penarikan data masih berlanjut...`;
 
-           progressText.innerHTML = `Selesai menarik <b>${totalDataTerkumpul.toLocaleString('id-ID')}</b> data. Penarikan data masih berlanjut... ${teksLinkBerhenti}`;
+if (totalDataTerkumpul >= 20000) {
+  let wadahTombol = document.getElementById('wadah-tombol-berhenti');
+  if (wadahTombol && wadahTombol.innerHTML === '') {
+    // Tombol sekarang berada di wadah sendiri, tidak menumpang di <p>
+    wadahTombol.innerHTML = `<a href="#" onclick="window.konfirmasiBerhenti(); return false;" style="background-color: #7b0d0c; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: 600; display: inline-block;">Cukupkan Pencarian?</a>`;
+  }
+}
          }
       }
       offset += chunkSize;
