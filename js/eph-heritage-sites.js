@@ -1107,12 +1107,10 @@ if (currentUsiaFilter !== 'all') {                 // ganti dari .startsWith('us
     if (validMarkers.length > 0) {
       Cluster.addLayers(validMarkers);
       if (!preventZoom) {
-        Map.flyToBounds(Cluster.getBounds(), { duration: 0.5 });
+        Map.fitBounds(Cluster.getBounds());
       }
     }
-    
-    renderTimeoutToken = null; 
-  }, 150); 
+}, 10);
 }
 
 function generateRecordDetails(qid) {
